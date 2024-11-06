@@ -1,66 +1,130 @@
-#Text-Based CAPTCHA  
-import string 
-import random 
-def text_captcha(): 
-    captcha=''.join(random.choices(string.ascii_letters + string.digits,k=5)) 
-    print(f"The Captcha is: {captcha}") 
-    user_input=input("Please Enter the Text: ") 
-    if user_input==captcha: 
-        print("The captcha is passed.") 
-    else: 
-        print("CAPTCHA Failed. Try Again.") 
-text_captcha()
-
-#---------------------------------------------------------------------------------
-# Math-Based CAPTCHA
-def math_captcha(): 
-    num1=random.randint(1,10) 
-    num2=random.randint(1,10) 
-    oparations=random.choice(['*','+','-']) 
-    captcha_text=f"{num1} {oparations} {num2}" 
-    answre=eval(captcha_text) 
-    print(f"Solve this equestion {captcha_text}") 
-    user_input=input("input the answer= ") 
-    if int(user_input)==answre: 
-        print("the captcha is passed") 
-    else: 
-        print("the captcha is failed. Try Again.") 
-math_captcha()
-
-#---------------------------------------------------------------------------------
-#A Python Script That Deletes Files 
-import os 
-def delete_files_in_directory(directory): 
-    for filename in os.listdir(directory): 
-        file_path = os.path.join(directory, filename) 
-         
-        # If it's a file, delete it 
-        if os.path.isfile(file_path): 
-            os.remove(file_path) 
-            print(f"Deleted file: {file_path}") 
-         
-        # If it's a directory, go inside and delete files recursively 
-        elif os.path.isdir(file_path): 
-            delete_files_in_directory(file_path) 
+;one OFF one ON   with delay   ----------------------------------------------------------------------------------------------
  
-# Specify a directory to delete files in (CAUTION: Don't run this on a real directory) 
-directory_to_delete = "/path/to/some/directory" 
-delete_files_in_directory(directory_to_delete)
+.include "m32def.inc"    ; Include the ATmega32 definitions
+
+.org 0x00                ; Start of the program memory
+    rjmp RESET           ; Jump to the RESET label
+
+RESET:
+    ldi r16, 0x0F        ; Set lower 4 pins (PB0-PB3) as output
+    out DDRB, r16        ; Set PORTB pins as output
+    
+    ldi r16, 0x00        ; Initially turn off all LEDs
+    out PORTB, r16       ; Set PORTB to 0x00 (all LEDs off)
+
+TOGGLE_LOOP:
+    ldi r16, 0x01        ; Load 0x01 (turn on first LED)
+    out PORTB, r16       ; Send value to PORTB
+    rcall DELAY          ; Call delay
+
+    lsl r16              ; Shift left to turn on next LED (PB1)
+    out PORTB, r16       ; Send value to PORTB
+    rcall DELAY          ; Call delay
+
+    lsl r16              ; Shift left to turn on next LED (PB2)
+    out PORTB, r16       ; Send value to PORTB
+    rcall DELAY          ; Call delay
+
+    lsl r16              ; Shift left to turn on next LED (PB3)
+    out PORTB, r16       ; Send value to PORTB
+    rcall DELAY          ; Call delay
+
+    rjmp TOGGLE_LOOP     ; Repeat the loop
+
+; Subroutine for delay
+DELAY:
+    ldi r18, 0xFF        ; Load register r18 with 0xFF
+    ldi r19, 0xFF        ; Load register r19 with 0xFF
+
+DELAY_LOOP:
+    dec r19              ; Decrement r19
+    brne DELAY_LOOP      ; Branch if not zero
+    dec r18              ; Decrement r18
+    brne DELAY_LOOP      ; Branch if not zero
+
+    ret                  ; Return from subroutine
 
 
-#---------------------------------------------------------------------------------
-# Create a File and Write to It
-def create_and_write_file(directory, filename, content): 
-    # Create the full path to the file 
-    file_path = os.path.join(directory, filename) 
-     
-    # Open the file in write mode (it will create the file if it doesn't exist) 
-    with open(file_path, "w") as file: 
-        file.write(content) 
-        print(f"Created and wrote to file: {file_path}") 
- 
-# Specify the directory where you want to create the file 
-directory_to_create_file = "/path/to/some/directory" 
- 
-# Create a file named 'example.txt' and write some content into it 
-create_and_write_file(directory_to_create_file, "example.txt", "This is some sample  text.") 
+
+
+;All ON  with delay  ----------------------------------------------------------------------------------------------
+
+
+
+; Program to toggle four LEDs connected to PORTB of ATmega32
+
+.include "m32def.inc"    ; Include the ATmega32 definitions
+
+.org 0x00                ; Start of the program memory
+    rjmp RESET           ; Jump to the RESET label
+
+RESET:
+    ldi r16, 0x0F        ; Load immediate value 0x0F (00001111) into register r16
+    out DDRB, r16        ; Set the lower 4 pins of PORTB as output (PB0-PB3)
+    
+    ldi r16, 0x00        ; Load immediate value 0x00 to turn LEDs off initially
+    out PORTB, r16       ; Set PORTB output to 0x00 (all LEDs off)
+
+TOGGLE_LOOP:
+    ldi r16, 0x0F        ; Load 0x0F to turn all four LEDs on
+    out PORTB, r16       ; Send the value to PORTB
+    
+    rcall DELAY          ; Call delay subroutine
+    
+    ldi r16, 0x00        ; Load 0x00 to turn all four LEDs off
+    out PORTB, r16       ; Send the value to PORTB
+    
+    rcall DELAY          ; Call delay subroutine
+    
+    rjmp TOGGLE_LOOP     ; Repeat the loop
+
+; Subroutine for delay
+DELAY:
+    ldi r18, 0xFF        ; Load register r18 with 0xFF
+    ldi r19, 0xFF        ; Load register r19 with 0xFF
+
+DELAY_LOOP:
+    dec r19              ; Decrement r19
+    brne DELAY_LOOP      ; Branch if not zero
+    dec r18              ; Decrement r18
+    brne DELAY_LOOP      ; Branch if not zero
+
+    ret                  ; Return from subroutine
+
+; one OFF one ONE no delay ----------------------------------------------------------------------------------------------
+
+
+.include "M32DEF.INC"
+
+main:
+
+    ldi r16, 0x00
+    out DDRA, r16
+
+    ldi r17, 0xFF
+    out DDRB, r17
+
+loops:
+    ldi r20, 0x55
+    out PORTB, r20
+    rjmp loops
+
+; one OFF one ONE no delay ----------------------------------------------------------------------------------------------
+
+
+.include "M32DEF.INC"
+
+main:
+
+    ldi r16, 0x00
+    out DDRA, r16
+
+    ldi r17, 0xFF
+    out DDRB, r17
+
+loops:
+    ldi r20, 0xFF
+    out PORTB, r20
+    rjmp loops
+
+
