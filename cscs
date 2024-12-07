@@ -1,130 +1,158 @@
-;one OFF one ON   with delay   ----------------------------------------------------------------------------------------------
+# ENCRYPTION
+print("Enter Plain Text:")
+key = 10
+text = input("Plain Text: ")
+
+# Convert the text to a character array and encrypt each character
+encrypted_text = ""
+for char in text:
+    # Check if the character is a letter
+    if char.isalpha():
+        # Determine if it's uppercase or lowercase
+        offset = 97 if char.islower() else 65
+        # Convert character to its position, shift, and wrap around using modulo
+        p = (ord(char) - offset + key) % 26 + offset
+        encrypted_text += chr(p)
+    else:
+        # Keep non-alphabet characters unchanged
+        encrypted_text += char
+
+print("Encrypted Text:", encrypted_text)
+
+
+------------------------------------------------------
+
+# DECRYPTION
+print("Enter Cipher Text:")
+key = 10
+cipher_text = input("Cipher Text: ")
+
+# Convert the cipher text to a character array and decrypt each character
+decrypted_text = ""
+for char in cipher_text:
+    # Check if the character is a letter
+    if char.isalpha():
+        # Determine if it's uppercase or lowercase
+        offset = 97 if char.islower() else 65
+        # Convert character to its position, shift back, and wrap around using modulo
+        c = (ord(char) - offset - key) % 26 + offset
+        decrypted_text += chr(c)
+    else:
+        # Keep non-alphabet characters unchanged
+        decrypted_text += char
+
+print("Decrypted Text:", decrypted_text)
+
+
+
+
+---------------------------------------------------
+
+
+Caesar cipher encryption & decryption:
+
+def encrypt(plain_text, key): 
+    encrypted_text = "" 
+    for char in plain_text: 
+        if char.islower():   
+            encrypted_text += chr((ord(char) - 97 + key) % 26 + 97)  
+        elif char.isupper(): 
+            encrypted_text += chr((ord(char) - 65 + key) % 26 + 65)  
+        else: 
+            encrypted_text += char  # Keep non-alphabetic characters unchanged
+    return encrypted_text 
  
-.include "m32def.inc"    ; Include the ATmega32 definitions
-
-.org 0x00                ; Start of the program memory
-    rjmp RESET           ; Jump to the RESET label
-
-RESET:
-    ldi r16, 0x0F        ; Set lower 4 pins (PB0-PB3) as output
-    out DDRB, r16        ; Set PORTB pins as output
-    
-    ldi r16, 0x00        ; Initially turn off all LEDs
-    out PORTB, r16       ; Set PORTB to 0x00 (all LEDs off)
-
-TOGGLE_LOOP:
-    ldi r16, 0x01        ; Load 0x01 (turn on first LED)
-    out PORTB, r16       ; Send value to PORTB
-    rcall DELAY          ; Call delay
-
-    lsl r16              ; Shift left to turn on next LED (PB1)
-    out PORTB, r16       ; Send value to PORTB
-    rcall DELAY          ; Call delay
-
-    lsl r16              ; Shift left to turn on next LED (PB2)
-    out PORTB, r16       ; Send value to PORTB
-    rcall DELAY          ; Call delay
-
-    lsl r16              ; Shift left to turn on next LED (PB3)
-    out PORTB, r16       ; Send value to PORTB
-    rcall DELAY          ; Call delay
-
-    rjmp TOGGLE_LOOP     ; Repeat the loop
-
-; Subroutine for delay
-DELAY:
-    ldi r18, 0xFF        ; Load register r18 with 0xFF
-    ldi r19, 0xFF        ; Load register r19 with 0xFF
-
-DELAY_LOOP:
-    dec r19              ; Decrement r19
-    brne DELAY_LOOP      ; Branch if not zero
-    dec r18              ; Decrement r18
-    brne DELAY_LOOP      ; Branch if not zero
-
-    ret                  ; Return from subroutine
+def decrypt(cipher_text, key): 
+    decrypted_text = "" 
+    for char in cipher_text: 
+        if char.islower():   
+            decrypted_text += chr((ord(char) - 97 - key) % 26 + 97)  
+        elif char.isupper(): 
+            decrypted_text += chr((ord(char) - 65 - key) % 26 + 65)  
+        else: 
+            decrypted_text += char  # Keep non-alphabetic characters unchanged
+    return decrypted_text 
+ 
+plain_text = input("Enter plain text: ") 
+key = int(input("Enter key for encryption (integer): ")) 
+cipher_text = encrypt(plain_text, key) 
+print("Encrypted Text:", cipher_text) 
+ 
+cipher_text = input("\nEnter cipher text to decrypt: ") 
+key = int(input("Enter key for decryption (integer): ")) 
+decrypted_text = decrypt(cipher_text, key) 
+print("Decrypted Text:", decrypted_text)
+ 
 
 
 
+------------------------ 26 - Message reversal
 
-;All ON  with delay  ----------------------------------------------------------------------------------------------
+# Prompt user for input
+plaintext = input("Please Enter Plaintext: ")
 
+# Print the entered plaintext
+print(plaintext)
 
+# Print the plaintext in reverse order
+for i in range(len(plaintext) - 1, -1, -1):
+    print(plaintext[i], end="")
 
-; Program to toggle four LEDs connected to PORTB of ATmega32
-
-.include "m32def.inc"    ; Include the ATmega32 definitions
-
-.org 0x00                ; Start of the program memory
-    rjmp RESET           ; Jump to the RESET label
-
-RESET:
-    ldi r16, 0x0F        ; Load immediate value 0x0F (00001111) into register r16
-    out DDRB, r16        ; Set the lower 4 pins of PORTB as output (PB0-PB3)
-    
-    ldi r16, 0x00        ; Load immediate value 0x00 to turn LEDs off initially
-    out PORTB, r16       ; Set PORTB output to 0x00 (all LEDs off)
-
-TOGGLE_LOOP:
-    ldi r16, 0x0F        ; Load 0x0F to turn all four LEDs on
-    out PORTB, r16       ; Send the value to PORTB
-    
-    rcall DELAY          ; Call delay subroutine
-    
-    ldi r16, 0x00        ; Load 0x00 to turn all four LEDs off
-    out PORTB, r16       ; Send the value to PORTB
-    
-    rcall DELAY          ; Call delay subroutine
-    
-    rjmp TOGGLE_LOOP     ; Repeat the loop
-
-; Subroutine for delay
-DELAY:
-    ldi r18, 0xFF        ; Load register r18 with 0xFF
-    ldi r19, 0xFF        ; Load register r19 with 0xFF
-
-DELAY_LOOP:
-    dec r19              ; Decrement r19
-    brne DELAY_LOOP      ; Branch if not zero
-    dec r18              ; Decrement r18
-    brne DELAY_LOOP      ; Branch if not zero
-
-    ret                  ; Return from subroutine
-
-; one OFF one ONE no delay ----------------------------------------------------------------------------------------------
+print()  # Add a new line at the end
 
 
-.include "M32DEF.INC"
 
-main:
+--------------------------------------30 -Rail Fence Cipher 
 
-    ldi r16, 0x00
-    out DDRA, r16
+# Prompt user for input
+plaintext = input("Enter Your Plain text: ")
 
-    ldi r17, 0xFF
-    out DDRB, r17
+# Print the input text
+print(plaintext)
 
-loops:
-    ldi r20, 0x55
-    out PORTB, r20
-    rjmp loops
+# Initialize empty strings for even and odd indexed characters
+even = ""
+odd = ""
 
-; one OFF one ONE no delay ----------------------------------------------------------------------------------------------
+# Iterate through the characters in the input text
+for i in range(len(plaintext)):
+    if i % 2 == 0:  # Check if the index is even
+        even += plaintext[i]
+    else:  # Otherwise, the index is odd
+        odd += plaintext[i]
+
+# Print the even-indexed and odd-indexed characters
+print(even + " " + odd)
 
 
-.include "M32DEF.INC"
 
-main:
+------------------------------------- 33  Atbash Cipher
 
-    ldi r16, 0x00
-    out DDRA, r16
+enc = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
+dec = ['z', 'y', 'x', 'w', 'v', 'u', 't', 's', 'r', 'q', 'p', 'o', 'n', 'm', 'l', 'k', 'j', 'i', 'h', 'g', 'f', 'e', 'd', 'c', 'b', 'a']
 
-    ldi r17, 0xFF
-    out DDRB, r17
+text = input("Enter Plain Text: ")
+arr = list(text)
 
-loops:
-    ldi r20, 0xFF
-    out PORTB, r20
-    rjmp loops
+for char in arr:
+    if char in enc:
+        index = enc.index(char)
+        print(dec[index], end=" ")
+
+print()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
