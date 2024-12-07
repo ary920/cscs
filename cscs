@@ -146,6 +146,48 @@ print()
 
 
 
+#------------------------------------------------------------------------------------
+import os 
+import shutil 
+ 
+ 
+directory_path = "C:\\Users\\MILAD FOR COMPUTER\\Desktop\\halkawt"  
+  
+# Check if the directory exists; if not, create it  
+  
+if not os.path.exists(directory_path):  
+    os.mkdir(directory_path)  
+    print(f"Directory created at: {directory_path}")  
+else:  
+    print(f"Directory already exists at: {directory_path}")  
+      
+  
+# Create 10 files inside the path  
+for i in range(10):  
+    file_path = os.path.join(directory_path, f"file number_{i+1}.txt")  
+    # Open the file in write mode ('w') and create it  
+    with open(file_path, 'w') as file:  
+        file.write("empty file")   
+    print(f"File created at: {file_path}")  
+#==================== 
+#delet file  
+  
+for file_name in os.listdir(directory_path):  
+    file_path= os.path.join(directory_path,file_name)  
+    os.remove(file_path)  
+print(f"file '{file_name}' has been deleted")  
+#====================     
+#delet directory with file  
+  
+if os.path.exists(directory_path):  
+   shutil.rmtree(directory_path)  
+   print(f"directory is deleted in '{directory_path}")
+
+
+
+
+
+
 
 
 
