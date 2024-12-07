@@ -1,3 +1,53 @@
+# ENCRYPTION
+print("Enter Plain Text:")
+key = 10
+text = input("Plain Text: ")
+
+# Convert the text to a character array and encrypt each character
+encrypted_text = ""
+for char in text:
+    # Check if the character is a letter
+    if char.isalpha():
+        # Determine if it's uppercase or lowercase
+        offset = 97 if char.islower() else 65
+        # Convert character to its position, shift, and wrap around using modulo
+        p = (ord(char) - offset + key) % 26 + offset
+        encrypted_text += chr(p)
+    else:
+        # Keep non-alphabet characters unchanged
+        encrypted_text += char
+
+print("Encrypted Text:", encrypted_text)
+
+
+------------------------------------------------------
+
+# DECRYPTION
+print("Enter Cipher Text:")
+key = 10
+cipher_text = input("Cipher Text: ")
+
+# Convert the cipher text to a character array and decrypt each character
+decrypted_text = ""
+for char in cipher_text:
+    # Check if the character is a letter
+    if char.isalpha():
+        # Determine if it's uppercase or lowercase
+        offset = 97 if char.islower() else 65
+        # Convert character to its position, shift back, and wrap around using modulo
+        c = (ord(char) - offset - key) % 26 + offset
+        decrypted_text += chr(c)
+    else:
+        # Keep non-alphabet characters unchanged
+        decrypted_text += char
+
+print("Decrypted Text:", decrypted_text)
+
+
+
+
+---------------------------------------------------
+
 
 Caesar cipher encryption & decryption:
 
