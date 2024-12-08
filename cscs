@@ -1,313 +1,145 @@
-# ENCRYPTION
-print("Enter Plain Text:")
-key = 10
-text = input("Plain Text: ")
-
-# Convert the text to a character array and encrypt each character
-encrypted_text = ""
-for char in text:
-    # Check if the character is a letter
-    if char.isalpha():
-        # Determine if it's uppercase or lowercase
-        offset = 97 if char.islower() else 65
-        # Convert character to its position, shift, and wrap around using modulo
-        p = (ord(char) - offset + key) % 26 + offset
-        encrypted_text += chr(p)
-    else:
-        # Keep non-alphabet characters unchanged
-        encrypted_text += char
-
-print("Encrypted Text:", encrypted_text)
-
-
-------------------------------------------------------
-
-# DECRYPTION
-print("Enter Cipher Text:")
-key = 10
-cipher_text = input("Cipher Text: ")
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Load the image
+image_path = "aaaa.jpg"  # Replace with the correct image file path
+img = cv2.imread(image_path)
+
+# Check if the image was loaded successfully
+if img is None:
+    print("Error: Image not found! Please check the file path.")
+    exit()
+
+# Convert the image to RGB and grayscale
+img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+# Function for applying Gaussian blur
+def apply_gaussian_blur(image, kernel_size=(5, 5), sigma=0):
+    return cv2.GaussianBlur(image, kernel_size, sigma)
+
+# Apply Gaussian blur
+img_blur = apply_gaussian_blur(img_gray)
+
+# Function for performing Canny edge detection
+def canny_edge_detection(image, threshold1, threshold2):
+    return cv2.Canny(image, threshold1, threshold2)
+
+# Perform edge detection
+edges = canny_edge_detection(img_blur, 100, 200)
+
+# Resize the edge-detected image
+def resize_image(image, dimensions=(300, 300)):
+    return cv2.resize(image, dimensions)
+
+resized_edges = resize_image(edges)
+
+# Apply rotation
+def rotate_image(image, angle, scale=1.0):
+    height, width = image.shape[:2]
+    center = (width // 2, height // 2)
+    rotation_matrix = cv2.getRotationMatrix2D(center, angle, scale)
+    return cv2.warpAffine(image, rotation_matrix, (width, height))
+
+rotated_edges = rotate_image(resized_edges, 45)
+
+# Apply contrast stretching
+def contrast_stretching(image, in_range=(50, 200), out_range=(0, 255)):
+    in_min, in_max = in_range
+    out_min, out_max = out_range
+    stretched = ((image - in_min) * ((out_max - out_min) / (in_max - in_min)) + out_min)
+    return np.clip(stretched, out_min, out_max).astype(np.uint8)
+
+contrast_image = contrast_stretching(img_gray)
+
+# Apply histogram equalization
+hist_eq_image = cv2.equalizeHist(img_gray)
+
+# Apply logarithmic transformation
+def logarithmic_transformation(image):
+    c = 255 / (np.log(1 + np.max(image) + 1e-5))
+    return (c * np.log(1 + image)).astype(np.uint8)
+
+log_image = logarithmic_transformation(img_gray)
+
+# Apply gamma correction
+def gamma_correction(image, gamma):
+    normalized_image = image / 255.0
+    gamma_corrected = (255 * (normalized_image ** gamma)).astype(np.uint8)
+    return gamma_corrected
+
+gamma_corrected = gamma_correction(img_gray, gamma=0.5)
+
+# Display results
+plt.figure(figsize=(15, 15))
+
+plt.subplot(3, 3, 1)
+plt.imshow(img_rgb)
+plt.title("Original Image (RGB)")
+plt.axis('off')
+
+plt.subplot(3, 3, 2)
+plt.imshow(img_gray, cmap='gray')
+plt.title("Grayscale Image")
+plt.axis('off')
+
+plt.subplot(3, 3, 3)
+plt.imshow(edges, cmap='gray')
+plt.title("Edge Detection (Canny)")
+plt.axis('off')
+
+plt.subplot(3, 3, 4)
+plt.imshow(resized_edges, cmap='gray')
+plt.title("Resized Edge Image")
+plt.axis('off')
+
+plt.subplot(3, 3, 5)
+plt.imshow(rotated_edges, cmap='gray')
+plt.title("Rotated Edge Image")
+plt.axis('off')
+
+plt.subplot(3, 3, 6)
+plt.imshow(contrast_image, cmap='gray')
+plt.title("Contrast Stretching")
+plt.axis('off')
+
+plt.subplot(3, 3, 7)
+plt.imshow(log_image, cmap='gray')
+plt.title("Logarithmic Transformation")
+plt.axis('off')
+
+plt.subplot(3, 3, 8)
+plt.imshow(hist_eq_image, cmap='gray')
+plt.title("Histogram Equalization")
+plt.axis('off')
+
+plt.tight_layout()
+plt.show()
+
+# Plot histograms for grayscale and histogram-equalized images
+plt.figure(figsize=(12, 10))
+
+# Original histogram
+plt.subplot(1, 2, 1)
+plt.hist(img_gray.ravel(), bins=256, range=[0, 256], color='blue', alpha=0.7)
+plt.title("Original Grayscale Histogram")
+plt.xlabel("Pixel Intensity")
+plt.ylabel("Frequency")
+plt.grid()
+
+# Equalized histogram
+plt.subplot(1, 2, 2)
+plt.hist(hist_eq_image.ravel(), bins=256, range=[0, 256], color='green', alpha=0.7)
+plt.title("Histogram Equalized")
+plt.xlabel("Pixel Intensity")
+plt.ylabel("Frequency")
+plt.grid()
+
+plt.tight_layout()
+plt.show()
 
-# Convert the cipher text to a character array and decrypt each character
-decrypted_text = ""
-for char in cipher_text:
-    # Check if the character is a letter
-    if char.isalpha():
-        # Determine if it's uppercase or lowercase
-        offset = 97 if char.islower() else 65
-        # Convert character to its position, shift back, and wrap around using modulo
-        c = (ord(char) - offset - key) % 26 + offset
-        decrypted_text += chr(c)
-    else:
-        # Keep non-alphabet characters unchanged
-        decrypted_text += char
 
-print("Decrypted Text:", decrypted_text)
-
-
-
-
----------------------------------------------------
-
-
-Caesar cipher encryption & decryption:
-
-def encrypt(plain_text, key): 
-    encrypted_text = "" 
-    for char in plain_text: 
-        if char.islower():   
-            encrypted_text += chr((ord(char) - 97 + key) % 26 + 97)  
-        elif char.isupper(): 
-            encrypted_text += chr((ord(char) - 65 + key) % 26 + 65)  
-        else: 
-            encrypted_text += char  # Keep non-alphabetic characters unchanged
-    return encrypted_text 
- 
-def decrypt(cipher_text, key): 
-    decrypted_text = "" 
-    for char in cipher_text: 
-        if char.islower():   
-            decrypted_text += chr((ord(char) - 97 - key) % 26 + 97)  
-        elif char.isupper(): 
-            decrypted_text += chr((ord(char) - 65 - key) % 26 + 65)  
-        else: 
-            decrypted_text += char  # Keep non-alphabetic characters unchanged
-    return decrypted_text 
- 
-plain_text = input("Enter plain text: ") 
-key = int(input("Enter key for encryption (integer): ")) 
-cipher_text = encrypt(plain_text, key) 
-print("Encrypted Text:", cipher_text) 
- 
-cipher_text = input("\nEnter cipher text to decrypt: ") 
-key = int(input("Enter key for decryption (integer): ")) 
-decrypted_text = decrypt(cipher_text, key) 
-print("Decrypted Text:", decrypted_text)
- 
-
-
-
------------------------- 26 - Message reversal
-
-# Prompt user for input
-plaintext = input("Please Enter Plaintext: ")
-
-# Print the entered plaintext
-print(plaintext)
-
-# Print the plaintext in reverse order
-for i in range(len(plaintext) - 1, -1, -1):
-    print(plaintext[i], end="")
-
-print()  # Add a new line at the end
-
-
-
---------------------------------------30 -Rail Fence Cipher 
-
-# Prompt user for input
-plaintext = input("Enter Your Plain text: ")
-
-# Print the input text
-print(plaintext)
-
-# Initialize empty strings for even and odd indexed characters
-even = ""
-odd = ""
-
-# Iterate through the characters in the input text
-for i in range(len(plaintext)):
-    if i % 2 == 0:  # Check if the index is even
-        even += plaintext[i]
-    else:  # Otherwise, the index is odd
-        odd += plaintext[i]
-
-# Print the even-indexed and odd-indexed characters
-print(even + " " + odd)
-
-
-
-------------------------------------- 33  Atbash Cipher
-
-enc = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
-dec = ['z', 'y', 'x', 'w', 'v', 'u', 't', 's', 'r', 'q', 'p', 'o', 'n', 'm', 'l', 'k', 'j', 'i', 'h', 'g', 'f', 'e', 'd', 'c', 'b', 'a']
-
-text = input("Enter Plain Text: ")
-arr = list(text)
-
-for char in arr:
-    if char in enc:
-        index = enc.index(char)
-        print(dec[index], end=" ")
-
-print()
-
-
-
-
-
-
-#------------------------------------------------------------------------------------
-import os 
-import shutil 
- 
- 
-directory_path = "C:\\Users\\MILAD FOR COMPUTER\\Desktop\\halkawt"  
-  
-# Check if the directory exists; if not, create it  
-  
-if not os.path.exists(directory_path):  
-    os.mkdir(directory_path)  
-    print(f"Directory created at: {directory_path}")  
-else:  
-    print(f"Directory already exists at: {directory_path}")  
-      
-  
-# Create 10 files inside the path  
-for i in range(10):  
-    file_path = os.path.join(directory_path, f"file number_{i+1}.txt")  
-    # Open the file in write mode ('w') and create it  
-    with open(file_path, 'w') as file:  
-        file.write("empty file")   
-    print(f"File created at: {file_path}")  
-#==================== 
-#delet file  
-  
-for file_name in os.listdir(directory_path):  
-    file_path= os.path.join(directory_path,file_name)  
-    os.remove(file_path)  
-print(f"file '{file_name}' has been deleted")  
-#====================     
-#delet directory with file  
-  
-if os.path.exists(directory_path):  
-   shutil.rmtree(directory_path)  
-   print(f"directory is deleted in '{directory_path}")
-
-
-
-
-
-
-
-
-
-hama=input("daxel bka  :")
-
-revers=hama[::-1]
-
-print(revers)
-
-#---------------------------- rail fence cipher
-
-
-# Input plain text
-plaintext=input("please enter word   :")
-print(plaintext)
-
-odd=""
-even=""
-
-for i in range (len(plaintext)):
-    if i %2==0:
-        even=even+plaintext[i]
-    else:
-        odd=odd+plaintext[i]
-print(odd + "  "+even)
-
-
-#----------------------------------- atbash cipher
-
-# Define encoding and decoding arrays
-enc = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
-dec = ['z', 'y', 'x', 'w', 'v', 'u', 't', 's', 'r', 'q', 'p', 'o', 'n', 'm', 'l', 'k', 'j', 'i', 'h', 'g', 'f', 'e', 'd', 'c', 'b', 'a']
-# Input plain text
-text=input("please enter   :")
-arr=list(text)
-
-for i in range(len(arr)):
-    for j in range(len(enc)):
-        if arr[i]==enc[j]:
-            print(dec[j] ,end=" ")
-
-print()    
-
-#--------------------------------------------
-# Input plain text and set the key
-key = 10
-text = input("Enter Plain Text: ")
-arr = list(text)  # Convert the input string to a list of characters
-
-# Process each character
-for i in range(len(arr)):
-    # Get the position of the letter in the alphabet (1-based, a=1, b=2, ...)
-    p = ord(arr[i]) - 96  # Convert character to its position
-    p = (p + key) % 26 + 96  # Apply the shift and wrap around using modulo
-    print(chr(p), end=" ")  # Convert back to character and print
-
-print()  # Add a newline at the end
-#-----------------------------------------------------------------------------------------------------------------
-
- #Text-Based CAPTCHA
-import string
-import random
-def text_captcha():
-    captcha=''.join(random.choices(string.ascii_letters + string.digits,k=5))
-    print(f"The Captcha is: {captcha}")
-    user_input=input("Please Enter the Text: ")
-    if user_input==captcha:
-        print("The captcha is passed.")
-    else:
-        print("CAPTCHA Failed. Try Again.")
-text_captcha()
-#-------------------------------------------------------------------------
-#Math-Based CAPTCHA
-def math_captcha():
-    num1=random.randint(1,10)
-    num2=random.randint(1,10)
-    oparations=random.choice(['*','+','-'])
-    captcha_text=f"{num1} {oparations} {num2}"
-    answre=eval(captcha_text)
-    print(f"Solve this equestion {captcha_text}")
-    user_input=input("input the answer= ")
-    if int(user_input)==answre:
-        print("the captcha is passed")
-    else:
-        print("the captcha is failed. Try Again.")
-math_captcha()
-#--------------------------------------------------------------------------
-#A Python Script That Deletes Files
-import os
-
-def delete_files_in_directory(directory):
-    for filename in os.listdir(directory):
-        file_path = os.path.join(directory, filename)
-        # If it's a file, delete it
-        if os.path.isfile(file_path):
-            os.remove(file_path)
-            print(f"Deleted file: {file_path}")
-        # If it's a directory, go inside and delete files recursively
-        elif os.path.isdir(file_path):
-            delete_files_in_directory(file_path)
-
-# Specify a directory to delete files in (CAUTION: Don't run this on a real directory)
-directory_to_delete = "/path/to/some/directory"
-delete_files_in_directory(directory_to_delete)
-#--------------------------------------------------------------------------------
-#Create a File and Write to It
-import os
-
-def create_and_write_file(directory, filename, content):
-    # Create the full path to the file
-    file_path = os.path.join(directory, filename)
-    # Open the file in write mode (it will create the file if it doesn't exist)
-    with open(file_path, "w") as file:
-        file.write(content)
-    print(f"Created and wrote to file: {file_path}")
-
-# Specify the directory where you want to create the file
-directory_to_create_file = "/path/to/some/directory"
-# Create a file named 'example.txt' and write some content into it
-create_and_write_file(directory_to_create_file, "example.txt", "This is some sample content.")
 
 
 
