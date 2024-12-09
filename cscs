@@ -1,162 +1,208 @@
-import cv2
-import numpy as np
-import matplotlib.pyplot as plt
+;   MIdterm Q1- 666            add to values and display it on leds or seven segments    output port D input port B w C
 
-# Load the image
-image_path = "aaaa.jpg"  # Replace with the correct image file path
-img = cv2.imread(image_path)
 
-# Check if the image was loaded successfully
-if img is None:
-    print("Error: Image not found! Please check the file path.")
-    exit()
 
-# Convert the image to RGB and grayscale
-img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-# Function for applying Gaussian blur
-def apply_gaussian_blur(image, kernel_size=(5, 5), sigma=0):
-    return cv2.GaussianBlur(image, kernel_size, sigma)
+.include "m32def.inc"    ; Include ATmega32 definitions
 
-# Apply Gaussian blur
-img_blur = apply_gaussian_blur(img_gray)
+LDI R20, 0x00            ; Load 0x00 into R20
+OUT DDRB, R20            ; Set PORTB as input
+OUT DDRC, R20            ; Set PORTC as input
 
-# Function for performing Canny edge detection
-def canny_edge_detection(image, threshold1, threshold2):
-    return cv2.Canny(image, threshold1, threshold2)
+LDI R21, 0xFF            ; Load 0xFF into R21
+OUT DDRD, R21            ; Set PORTD as output
 
-# Perform edge detection
-edges = canny_edge_detection(img_blur, 100, 200)
 
-# Resize the edge-detected image
-def resize_image(image, dimensions=(300, 300)):
-    return cv2.resize(image, dimensions)
+HERE:
+    IN R22, PINB         ; Read input from PORTB
+    IN R23, PINC         ; Read input from PORTC
+    
+    ADD R22, R23         ; Add the values in R22 and R23
+    
+    OUT PORTD, R22       ; Output the result to PORTD
+    JMP HERE            ; Infinite loop to keep running the process
 
-resized_edges = resize_image(edges)
 
-# Apply rotation
-def rotate_image(image, angle, scale=1.0):
-    height, width = image.shape[:2]
-    center = (width // 2, height // 2)
-    rotation_matrix = cv2.getRotationMatrix2D(center, angle, scale)
-    return cv2.warpAffine(image, rotation_matrix, (width, height))
 
-rotated_edges = rotate_image(resized_edges, 45)
+ ;------------------------------------------------------------------------------------
 
-# Apply contrast stretching
-def contrast_stretching(image, in_range=(50, 200), out_range=(0, 255)):
-    in_min, in_max = in_range
-    out_min, out_max = out_range
-    stretched = ((image - in_min) * ((out_max - out_min) / (in_max - in_min)) + out_min)
-    return np.clip(stretched, out_min, out_max).astype(np.uint8)
+Q2 - No delay leds     output port b 
 
-contrast_image = contrast_stretching(img_gray)
 
-# Apply histogram equalization
-hist_eq_image = cv2.equalizeHist(img_gray)
+.INCLUDE "M32DEF.INC"
+main:
+ldi r16,0x00
+out ddra,r16
 
-# Apply logarithmic transformation
-def logarithmic_transformation(image):
-    c = 255 / (np.log(1 + np.max(image) + 1e-5))
-    return (c * np.log(1 + image)).astype(np.uint8)
+ldi r17,0xff
+out ddrb,r17
 
-log_image = logarithmic_transformation(img_gray)
 
-# Apply gamma correction
-def gamma_correction(image, gamma):
-    normalized_image = image / 255.0
-    gamma_corrected = (255 * (normalized_image ** gamma)).astype(np.uint8)
-    return gamma_corrected
+loops:
+ldi r20,0x55
+out portb,r20
+rjmp loops
 
-gamma_corrected = gamma_correction(img_gray, gamma=0.5)
 
-# Display results
-plt.figure(figsize=(15, 15))
 
-plt.subplot(3, 3, 1)
-plt.imshow(img_rgb)
-plt.title("Original Image (RGB)")
-plt.axis('off')
 
-plt.subplot(3, 3, 2)
-plt.imshow(img_gray, cmap='gray')
-plt.title("Grayscale Image")
-plt.axis('off')
 
-plt.subplot(3, 3, 3)
-plt.imshow(edges, cmap='gray')
-plt.title("Edge Detection (Canny)")
-plt.axis('off')
+ ;------------------------------------------------------------------------------------
 
-plt.subplot(3, 3, 4)
-plt.imshow(resized_edges, cmap='gray')
-plt.title("Resized Edge Image")
-plt.axis('off')
 
-plt.subplot(3, 3, 5)
-plt.imshow(rotated_edges, cmap='gray')
-plt.title("Rotated Edge Image")
-plt.axis('off')
 
-plt.subplot(3, 3, 6)
-plt.imshow(contrast_image, cmap='gray')
-plt.title("Contrast Stretching")
-plt.axis('off')
 
-plt.subplot(3, 3, 7)
-plt.imshow(log_image, cmap='gray')
-plt.title("Logarithmic Transformation")
-plt.axis('off')
 
-plt.subplot(3, 3, 8)
-plt.imshow(hist_eq_image, cmap='gray')
-plt.title("Histogram Equalization")
-plt.axis('off')
+Q 3 - delay leds :  output port b 
 
-plt.tight_layout()
-plt.show()
 
-# Plot histograms for grayscale and histogram-equalized images
-plt.figure(figsize=(12, 10))
+.include "m32def.inc"    ; Include ATmega32 definitions
 
-# Original histogram
-plt.subplot(1, 2, 1)
-plt.hist(img_gray.ravel(), bins=256, range=[0, 256], color='blue', alpha=0.7)
-plt.title("Original Grayscale Histogram")
-plt.xlabel("Pixel Intensity")
-plt.ylabel("Frequency")
-plt.grid()
+RESET:
+    ldi r16, 0x0F        ; Set lower 4 pins (PC0-PC3) as output
+    out DDRC, r16        ; Configure PORTC
 
-# Equalized histogram
-plt.subplot(1, 2, 2)
-plt.hist(hist_eq_image.ravel(), bins=256, range=[0, 256], color='green', alpha=0.7)
-plt.title("Histogram Equalized")
-plt.xlabel("Pixel Intensity")
-plt.ylabel("Frequency")
-plt.grid()
+LOOP:
+    ldi r16, 0x01        ; Start with first LED (PC0)
+NEXT_LED:
+    out PORTC, r16       ; Output to PORTC
+    rcall DELAY          ; Wait for a while
+    lsl r16              ; Shift to the next LED
+    cpi r16, 0x10        ; Check if we've shifted past PC3
+    brne NEXT_LED        ; Repeat for the next LED
 
-plt.tight_layout()
-plt.show()
+    rjmp LOOP            ; Restart the sequence
+
+DELAY:
+    ldi r18, 0xFF        ; Load delay counter
+WAIT:
+    dec r18              ; Decrement counter
+    brne WAIT            ; Repeat until counter reaches 0
+    ret                  ; Return from delay
+
+
+
+;------------------------------------------------------------------------------------
 
 
 
 
 
 
+q4 SEVEN SEGMENTS   PORT C W PORT D
+
+
+
+.include "m32def.inc"
+
+LDI R20 , 0xFF 
+OUT DDRD , R20
+OUT DDRC , R20
+
+LDI R16 , 0X00
+LDI R23 , 0x64
+LDI R24 , 0x9B
+OUT PORTC , R16
+
+CALL DELAY
+
+BACK:
+    INC R16
+    OUT PORTC , R16
+
+    CALL DELAY
+    DEC R23
+    BRNE BACK
+
+COUNTER: 
+    INC R16
+    OUT PORTC , R16
+    CALL DELAY 
+    DEC R24
+    BRNE COUNTER
+    INC R25
+    LDI R16 , 0X00
+    OUT PORTC , R16
+    OUT PORTD , R25
+    CALL DELAY 
+
+END:
+    JMP END
+
+DELAY:
+    LDI R20,1
+L1: LDI R21,100
+L2: LDI R22,200
+L3: 
+    DEC R22
+    BRNE L3 
+    DEC R21
+    BRNE L2 
+    DEC R20
+    BRNE L1 
+    RET
+
+
+
+;------------------------------------------------------------------------------------
+
+Q5  XOR     THREE LOGIC STATES PORT B PIN 1,2,3 THREE LEDS PORT C PIN 5 ,6 7 
 
 
 
 
+.include "m32def.inc"
 
+; Initialization
+ldi r16, 0xE0         ; Set PORTC.5-7 as output
+out DDRC, r16
+ldi r16, 0x00         ; Set PORTB.0-2 as input
+out DDRB, r16
+ldi r16, 0x00         ; Turn off all LEDs initially
+out PORTC, r16
 
+main:
+    in r16, PINB      ; Read buttons
 
+    ; Check and toggle LEDs
+    andi r16, 0x01    ; Button 0
+    breq skip_led5
+    rcall toggle_led5
 
+skip_led5:
+    in r16, PINB
+    andi r16, 0x02    ; Button 1
+    breq skip_led6
+    rcall toggle_led6
 
+skip_led6:
+    in r16, PINB
+    andi r16, 0x04    ; Button 2
+    breq main
+    rcall toggle_led7
 
+    rjmp main
 
+toggle_led5:
+    ldi r17, 0x20     ; Toggle PORTC.5
+    in r18, PORTC
+    eor r18, r17
+    out PORTC, r18
+    ret
 
+toggle_led6:
+    ldi r17, 0x40     ; Toggle PORTC.6
+    in r18, PORTC
+    eor r18, r17
+    out PORTC, r18
+    ret
 
+toggle_led7:
+    ldi r17, 0x80     ; Toggle PORTC.7
+    in r18, PORTC
+    eor r18, r17
+    out PORTC, r18
+    ret
 
 
 
