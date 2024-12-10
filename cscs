@@ -1,208 +1,129 @@
-;   MIdterm Q1- 666            add to values and display it on leds or seven segments    output port D input port B w C
+# A* algorithm
+
+# graph and actual costs
+graph = {
+    'A': {'B': 10, 'C': 6, 'D': 3, 'E': 4, 'F': 7},
+    'B': {'E': 5, 'F': 3, 'C': 2, 'G': 10},
+    'C': {'G': 3, 'H': 4, 'D': 5},
+    'D': {'H': 5, 'F': 7, 'E': 6},
+    'E': {'G': 9, 'H': 7, 'A': 4},
+    'F': {'G': 8, 'H': 6, 'C': 5},
+    'G': {'H': 2, 'A': 11},
+    'H': {'B': 8, 'D': 4}
+}
+
+# Heuristic costs
+
+Heuristic = {'A': 8, 'B': 8, 'C': 2, 'D': 7, 'E': 3, 'F': 6, 'G': 0, 'H': 3}
+
+
+def A_star(graph, start, goal, h):
+    parent = dict()
+    frontier = {start: h[start]}
+    visited = {start: h[start]}
+    while frontier:
+        sorted_queue = sorted(frontier, key=frontier.get)  # sorted_queue is a list
+        node = sorted_queue[0]
+        g = frontier.pop(node) - h[node]
+        if node == goal:
+            return parent
+        for n in graph.get(node):
+            if n not in visited:
+                F = h[n] + graph[node][n] + g
+                visited[n] = F
+                frontier[n] = F
+                parent[n] = node
+            else:
+                F = h[n] + graph[node][n] + g
+                if visited[n] >= F:
+                    visited[n] = F
+                    frontier[n] = F
+                    parent[n] = node
 
 
+def traceback(parent, start, goal):
+    path = [goal]
+    while path[-1] != start:
+        path.append(parent[path[-1]])
+    path.reverse()
+    return path
 
+# Test
+# parent1 = A_star(graph, 'A', 'G', Heuristic)
+# path1 = traceback(parent1, 'A', 'G')
+# print("Path from A to G:", path1)
+# -----------------------------------------------------------------------------------------------------------------
+# BFS
 
-.include "m32def.inc"    ; Include ATmega32 definitions
+def bfs(graph, start):
+    visited = set()
+    queue = [start]
 
-LDI R20, 0x00            ; Load 0x00 into R20
-OUT DDRB, R20            ; Set PORTB as input
-OUT DDRC, R20            ; Set PORTC as input
+    while queue:
+        node = queue.pop(0)  # Dequeue the first node
+        if node not in visited:
+            print(node, end=' ')
+            visited.add(node)
 
-LDI R21, 0xFF            ; Load 0xFF into R21
-OUT DDRD, R21            ; Set PORTD as output
+            for neighbor in graph[node]:
+                if neighbor not in visited:
+                    queue.append(neighbor)
 
+# Example graph represented as an adjacency list
+graph = {
+    'A': ['B', 'C'],
+    'B': ['A', 'D', 'E'],
+    'C': ['A', 'F'],
+    'D': ['B'],
+    'E': ['B'],
+    'F': ['C']
+}
 
-HERE:
-    IN R22, PINB         ; Read input from PORTB
-    IN R23, PINC         ; Read input from PORTC
-    
-    ADD R22, R23         ; Add the values in R22 and R23
-    
-    OUT PORTD, R22       ; Output the result to PORTD
-    JMP HERE            ; Infinite loop to keep running the process
+# Start BFS from node 'A'
+bfs(graph, 'A')
 
 
 
- ;------------------------------------------------------------------------------------
 
-Q2 - No delay leds     output port b 
 
+# -----------------------------------------------------------------------------------------------------------------
 
-.INCLUDE "M32DEF.INC"
-main:
-ldi r16,0x00
-out ddra,r16
+# DFS algortihm
 
-ldi r17,0xff
-out ddrb,r17
+def dfs(graph, start, visited=None):
+    if visited is None:
+        visited = set()
+    visited.add(start)
 
+    print(start, end=' ')  # Output the node
 
-loops:
-ldi r20,0x55
-out portb,r20
-rjmp loops
+    for neighbor in graph[start]:
+        if neighbor not in visited:
+            dfs(graph, neighbor, visited)
 
+# Example graph represented as an adjacency list
+graph = {
+    'A': ['B', 'C'],
+    'B': ['A', 'D', 'E'],
+    'C': ['A', 'F'],
+    'D': ['B'],
+    'E': ['B'],
+    'F': ['C']
+}
 
+# Start DFS from node 'A'
+dfs(graph, 'A')
 
 
 
- ;------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------
 
 
 
 
 
-Q 3 - delay leds :  output port b 
 
 
-.include "m32def.inc"    ; Include ATmega32 definitions
-
-RESET:
-    ldi r16, 0x0F        ; Set lower 4 pins (PC0-PC3) as output
-    out DDRC, r16        ; Configure PORTC
-
-LOOP:
-    ldi r16, 0x01        ; Start with first LED (PC0)
-NEXT_LED:
-    out PORTC, r16       ; Output to PORTC
-    rcall DELAY          ; Wait for a while
-    lsl r16              ; Shift to the next LED
-    cpi r16, 0x10        ; Check if we've shifted past PC3
-    brne NEXT_LED        ; Repeat for the next LED
-
-    rjmp LOOP            ; Restart the sequence
-
-DELAY:
-    ldi r18, 0xFF        ; Load delay counter
-WAIT:
-    dec r18              ; Decrement counter
-    brne WAIT            ; Repeat until counter reaches 0
-    ret                  ; Return from delay
-
-
-
-;------------------------------------------------------------------------------------
-
-
-
-
-
-
-q4 SEVEN SEGMENTS   PORT C W PORT D
-
-
-
-.include "m32def.inc"
-
-LDI R20 , 0xFF 
-OUT DDRD , R20
-OUT DDRC , R20
-
-LDI R16 , 0X00
-LDI R23 , 0x64
-LDI R24 , 0x9B
-OUT PORTC , R16
-
-CALL DELAY
-
-BACK:
-    INC R16
-    OUT PORTC , R16
-
-    CALL DELAY
-    DEC R23
-    BRNE BACK
-
-COUNTER: 
-    INC R16
-    OUT PORTC , R16
-    CALL DELAY 
-    DEC R24
-    BRNE COUNTER
-    INC R25
-    LDI R16 , 0X00
-    OUT PORTC , R16
-    OUT PORTD , R25
-    CALL DELAY 
-
-END:
-    JMP END
-
-DELAY:
-    LDI R20,1
-L1: LDI R21,100
-L2: LDI R22,200
-L3: 
-    DEC R22
-    BRNE L3 
-    DEC R21
-    BRNE L2 
-    DEC R20
-    BRNE L1 
-    RET
-
-
-
-;------------------------------------------------------------------------------------
-
-Q5  XOR     THREE LOGIC STATES PORT B PIN 1,2,3 THREE LEDS PORT C PIN 5 ,6 7 
-
-
-
-
-.include "m32def.inc"
-
-; Initialization
-ldi r16, 0xE0         ; Set PORTC.5-7 as output
-out DDRC, r16
-ldi r16, 0x00         ; Set PORTB.0-2 as input
-out DDRB, r16
-ldi r16, 0x00         ; Turn off all LEDs initially
-out PORTC, r16
-
-main:
-    in r16, PINB      ; Read buttons
-
-    ; Check and toggle LEDs
-    andi r16, 0x01    ; Button 0
-    breq skip_led5
-    rcall toggle_led5
-
-skip_led5:
-    in r16, PINB
-    andi r16, 0x02    ; Button 1
-    breq skip_led6
-    rcall toggle_led6
-
-skip_led6:
-    in r16, PINB
-    andi r16, 0x04    ; Button 2
-    breq main
-    rcall toggle_led7
-
-    rjmp main
-
-toggle_led5:
-    ldi r17, 0x20     ; Toggle PORTC.5
-    in r18, PORTC
-    eor r18, r17
-    out PORTC, r18
-    ret
-
-toggle_led6:
-    ldi r17, 0x40     ; Toggle PORTC.6
-    in r18, PORTC
-    eor r18, r17
-    out PORTC, r18
-    ret
-
-toggle_led7:
-    ldi r17, 0x80     ; Toggle PORTC.7
-    in r18, PORTC
-    eor r18, r17
-    out PORTC, r18
-    ret
 
 
 
